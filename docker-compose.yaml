@@ -1,64 +1,46 @@
 services:
   auth-service:
-    build: ./service-auth  # This tells Docker Compose to build the image from the Dockerfile in the ./app directory
+    build: ./service-auth  # Path to auth service Dockerfile
     env_file:
       - .env 
     ports:
-      - "${AUTH_PORT}:${AUTH_PORT}"  # Exposes port 3000 of the container to port 3000 on the host machine
-      # - "3000:3000"  # Exposes port 3000 of the container to port 3000 on the host machine
-    # environment:
-    #   MYSQL_HOST: mysqldb  # Links to the db service for MySQL connection
-    #   MYSQL_USER: user
-    #   MYSQL_PASSWORD: password
-    #   MYSQL_DATABASE: appdb
+      - "${AUTH_PORT}:${AUTH_PORT}"
     depends_on:
-      - mysqldb  # Ensure the database service is up before starting the auth-service
+      - mysqldb 
   
   data-service:
-    build: ./web-app-data  # Corrected: service name should match
+    build: ./web-app-data  # Path to data service Dockerfile
     env_file:
       - .env 
     ports:
-      - "${DATA_PORT}:${DATA_PORT}"  # Exposes port 3001 of the container to port 3001 on the host machin
-      # - "3001:3001"  # Exposes port 3001 of the container to port 3001 on the host machine
-    # environment:
-    #   - AUTH_SERVICE_URL=http://auth-service:3000  # Link to the auth-service running in the container
-    #   - MYSQL_HOST=mysqldb
+      - "${DATA_PORT}:${DATA_PORT}"
     depends_on:
-      - mysqldb  # Ensure the database service is up before starting the data service
-      - auth-service  # Ensure the auth-service is up before starting the data service
+      - mysqldb
+      - auth-service
 
   analytics-service:
     build: ./service-ana  # Path to analytics service Dockerfile
     env_file:
       - .env 
     ports:
-      - "${ANA_PORT}:${ANA_PORT}"  # Exposes port 3002 of the container to port 3002 on the host machine
-    # environment:
-    #   MYSQL_HOST: mysqldb  # MySQL connection string
-    #   MYSQL_USER: user
-    #   MYSQL_PASSWORD: password
-    #   MYSQL_DATABASE: appdb
-    #   MONGO_URI: mongodb://mongodb:27017/  # MongoDB connection string
+      - "${ANA_PORT}:${ANA_PORT}"
     depends_on:
-      - mysqldb  # Ensure MySQL starts before analytics
-      - mongodb  # Ensure MongoDB starts before analytics
-    restart: always  # Restart analytics service on failure
+      - mysqldb
+      - mongodb
+    restart: unless-stopped  # Restart the service unless explicitly stopped
 
   result-service:
     build: ./web-app-result  # Path to analytics service Dockerfile
     env_file:
       - .env 
     ports:
-      - "${RESULT_PORT}:${RESULT_PORT}"  # Exposes port 3002 of the container to port 3002 on the host machine
-    # environment:
-    #   MONGO_URI: mongodb://mongodb:27017/  # MongoDB connection string
+      - "${RESULT_PORT}:${RESULT_PORT}"
     depends_on:
-      - mongodb  # Ensure MongoDB starts before analytics
-      - analytics-service  # Ensure analytics service starts before result service
+      - mongodb 
+      - analytics-service 
 
   mysqldb:
-    image: mysql:5.7  # This is the pre-built MySQL image from Docker Hub
+    image: mysql:5.7 
     env_file:
       - .env 
     environment:
@@ -68,9 +50,9 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE} 
     volumes:
       - ./mysql-db/init.sql:/docker-entrypoint-initdb.d/init.sql  # Initialize the DB with an SQL script
-      # - ./data/mysql:/var/lib/mysql  # Persists MySQL data
+      - ./data/mysql:/var/lib/mysql  # Persists MySQL data
     ports:
-      - "${MYSQL_PORT}:${MYSQL_PORT}"  # Exposes MySQL on port 3306
+      - "${MYSQL_PORT}:${MYSQL_PORT}"
 
   mongodb:
     image: mongo:latest
@@ -80,7 +62,7 @@ services:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
       MONGO_INITDB_DATABASE: ${MONGO_DATABASE}
-    # volumes:
-      # - ./data/mongodb:/data/db  # Persists MongoDB data
+    volumes:
+      - ./data/mongodb:/data/db  # Persists MongoDB data
     ports:
       - "${MONGO_PORT}:${MONGO_PORT}"

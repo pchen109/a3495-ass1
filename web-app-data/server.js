@@ -19,4 +19,4 @@ app.post('/data', async (req, res) => {
     res.send('Data saved');
 });
 
-app.listen(process.env.DATA_PORT, () => console.log('Data service running on port 3001'));
+app.listen(process.env.DATA_PORT, () => console.log(`Data service running on port ${process.env.DATA_PORT}`));
