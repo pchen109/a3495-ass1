@@ -1,0 +1,6 @@
+CREATE DATABASE IF NOT EXISTS data_db;
+USE data_db;
+CREATE TABLE data (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    value VARCHAR(255)
+);
